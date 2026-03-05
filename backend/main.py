@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -59,7 +60,17 @@ async def external_service_handler(request: Request, exc: ExternalServiceUnavail
 # Routes
 # ---------------------------------------------------------------------------
 from agents import extract_ingredients, generate_recipes
-from models import IngredientsRequest, RecipeResponse
+from models import IngredientsRequest, RecipeResponse, ValidationError as ApiValidationError, ErrorDetail
+
+
+@app.exception_handler(RequestValidationError)
+async def request_validation_handler(request: Request, exc: RequestValidationError):
+    details = [
+        ErrorDetail(code="invalid_input", message=err.get("msg", "Invalid input"))
+        for err in exc.errors()
+    ]
+    payload = ApiValidationError(details=details)
+    return JSONResponse(status_code=400, content=payload.model_dump())
 
 
 @app.get("/health")

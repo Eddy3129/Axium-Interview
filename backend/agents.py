@@ -9,13 +9,12 @@ JSON output (json_object mode) to avoid parsing fragile markdown.
 import json
 import os
 
-import httpx
 from openai import OpenAI, APIConnectionError, APIStatusError
 from pydantic import ValidationError as PydanticValidationError
 
 from errors import MalformedLLMResponseError, ExternalServiceUnavailableError, InvalidIngredientsError
 from models import RecipeResponse
-from prompts import EXTRACTION_SYSTEM_PROMPT, GENERATION_SYSTEM_PROMPT
+from prompts import EXTRACTION_SYSTEM_PROMPT, EXTRACTION_VALIDATION_PROMPT, GENERATION_SYSTEM_PROMPT
 
 MODEL = "openai/gpt-4o-mini"
 
@@ -26,6 +25,56 @@ def _get_client() -> OpenAI:
         base_url="https://openrouter.ai/api/v1",
         api_key=os.environ["OPENROUTER_API_KEY"],
     )
+
+
+def _normalize_ingredient_list(values: list) -> list[str]:
+    """Normalize ingredient strings and remove obvious invalid entries."""
+    normalized: list[str] = []
+    seen: set[str] = set()
+
+    for value in values:
+        item = str(value).strip().lower()
+        if not item:
+            continue
+        # Keep ingredient-like tokens only (letters, spaces, apostrophes, hyphens).
+        if not all(ch.isalpha() or ch in {" ", "-", "'"} for ch in item):
+            continue
+        item = " ".join(item.split())
+        if item and item not in seen:
+            normalized.append(item)
+            seen.add(item)
+
+    return normalized
+
+
+def _validate_edible_ingredients(client: OpenAI, candidates: list[str]) -> list[str]:
+    """Use a strict validator prompt to keep only edible ingredients."""
+    try:
+        completion = client.chat.completions.create(
+            model=MODEL,
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": EXTRACTION_VALIDATION_PROMPT},
+                {"role": "user", "content": json.dumps({"ingredients": candidates})},
+            ],
+            temperature=0,
+            max_tokens=100,
+        )
+    except APIConnectionError as exc:
+        raise ExternalServiceUnavailableError(message=f"Cannot reach OpenRouter: {exc}") from exc
+    except APIStatusError as exc:
+        raise ExternalServiceUnavailableError(message=f"OpenRouter error {exc.status_code}: {exc.message}") from exc
+
+    raw = completion.choices[0].message.content or ""
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise MalformedLLMResponseError(f"Ingredient validator returned invalid JSON: {raw!r}") from exc
+
+    if not isinstance(payload, dict) or not isinstance(payload.get("ingredients"), list):
+        raise MalformedLLMResponseError("Ingredient validator response missing 'ingredients' array.")
+
+    return _normalize_ingredient_list(payload["ingredients"])
 
 
 async def extract_ingredients(raw_input: str) -> list[str]:
@@ -72,11 +121,18 @@ async def extract_ingredients(raw_input: str) -> list[str]:
     except (json.JSONDecodeError, ValueError) as exc:
         raise MalformedLLMResponseError(f"Extraction agent returned invalid JSON: {raw!r}") from exc
 
-    # Normalize: convert to strings, strip whitespace, remove empties
-    ingredients = [str(i).strip().lower() for i in ingredients if str(i).strip()]
+    ingredients = _normalize_ingredient_list(ingredients)
 
     if not ingredients:
         raise InvalidIngredientsError(["No valid food ingredients could be extracted from the input."])
+
+    ingredients = _validate_edible_ingredients(client, ingredients)
+
+    if not ingredients:
+        raise InvalidIngredientsError([
+            "No edible food ingredients found after validation.",
+            "Provide edible ingredients like 'chicken, lemon, rice'.",
+        ])
 
     return ingredients
 

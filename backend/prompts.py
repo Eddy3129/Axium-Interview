@@ -30,6 +30,22 @@ Input: "eggs, butter, flour, sugar, vanilla extract, baking powder"
 Output: ["egg", "butter", "flour", "sugar", "vanilla extract", "baking powder"]
 """
 
+EXTRACTION_VALIDATION_PROMPT: str = """\
+You are a strict ingredient validator.
+
+Task:
+- You will receive a JSON object with a candidate list under "ingredients".
+- Keep ONLY edible food ingredients suitable for cooking.
+- Remove any person names, brands, places, actions, nonsense words, tools, or non-food entities.
+- If uncertain whether something is edible, discard it.
+
+Output rules:
+- Return ONLY valid JSON object with this exact shape:
+  {"ingredients": ["ingredient", ...]}
+- Lowercase strings only.
+- No explanations.
+"""
+
 GENERATION_SYSTEM_PROMPT: str = """\
 You are a recipe generation agent. Given a list of food ingredients, generate 2-3 \
 diverse, practical recipes and return them as a single JSON object.

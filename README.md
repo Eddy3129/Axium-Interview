@@ -51,6 +51,25 @@ FoodApp/
 
 ## Backend Architecture
 
+```mermaid
+flowchart LR
+  FE[Frontend or CLI Client] --> API[FastAPI main.py]
+
+  API --> ROUTES[Routes<br/>health<br/>recipes<br/>saved-recipes]
+  API --> EH[Exception Handlers<br/>400, 422, 502]
+  API --> MODELS[Pydantic Models<br/>models.py]
+
+  ROUTES --> AGENTS[Agent Pipeline<br/>agents.py]
+  AGENTS --> PROMPTS[Prompts<br/>prompts.py]
+  AGENTS --> OR[OpenRouter API]
+
+  ROUTES --> DBLAYER[Persistence Layer<br/>db.py]
+  DBLAYER --> SQLITE[(SQLite<br/>recipes.db)]
+
+  EH --> ERR[Domain Exceptions<br/>errors.py]
+  ERR --> MODELS
+```
+
 The backend follows a layered flow:
 
 1. API route validates and parses request body with Pydantic.

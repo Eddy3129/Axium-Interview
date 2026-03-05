@@ -9,12 +9,15 @@ from fastapi.responses import JSONResponse
 
 load_dotenv()  # loads backend/.env into os.environ
 
+from db import init_db, list_saved_recipes as db_list_saved_recipes, save_recipe as db_save_recipe
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY is not set. Add it to backend/.env")
+    init_db()
     yield
 
 
@@ -60,7 +63,15 @@ async def external_service_handler(request: Request, exc: ExternalServiceUnavail
 # Routes
 # ---------------------------------------------------------------------------
 from agents import extract_ingredients, generate_recipes
-from models import IngredientsRequest, RecipeResponse, ValidationError as ApiValidationError, ErrorDetail
+from models import (
+    ErrorDetail,
+    IngredientsRequest,
+    RecipeResponse,
+    SaveRecipeRequest,
+    SavedRecipe,
+    SavedRecipeListResponse,
+    ValidationError as ApiValidationError,
+)
 
 
 @app.exception_handler(RequestValidationError)
@@ -91,6 +102,18 @@ async def recipes(body: IngredientsRequest) -> RecipeResponse:
     """
     ingredients = await extract_ingredients(body.ingredients)
     return await generate_recipes(ingredients)
+
+
+@app.post("/saved-recipes", response_model=SavedRecipe)
+async def save_saved_recipe(body: SaveRecipeRequest) -> SavedRecipe:
+    """Persist one recipe with a user rating in SQLite."""
+    return db_save_recipe(body)
+
+
+@app.get("/saved-recipes", response_model=SavedRecipeListResponse)
+async def get_saved_recipes() -> SavedRecipeListResponse:
+    """List saved recipes for frontend rendering."""
+    return SavedRecipeListResponse(items=db_list_saved_recipes())
 
 
 if __name__ == "__main__":

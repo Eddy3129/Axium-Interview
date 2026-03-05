@@ -67,6 +67,25 @@ class IngredientsRequest(BaseModel):
         return v.strip()
 
 
+class SaveRecipeRequest(BaseModel):
+    """Request to persist a generated recipe with a user rating."""
+    recipe: Recipe = Field(..., description="Recipe object to save")
+    rating: int = Field(..., ge=1, le=5, description="User rating from 1 to 5")
+
+
+class SavedRecipe(BaseModel):
+    """Persisted recipe record with DB metadata."""
+    id: int = Field(..., ge=1, description="Database primary key")
+    recipe: Recipe = Field(..., description="Saved recipe payload")
+    rating: int = Field(..., ge=1, le=5, description="User rating from 1 to 5")
+    createdAt: str = Field(..., description="UTC ISO timestamp when recipe was saved")
+
+
+class SavedRecipeListResponse(BaseModel):
+    """Response model for listing saved recipes."""
+    items: list[SavedRecipe] = Field(default_factory=list, description="Saved recipe list")
+
+
 # ============================================================================
 # Error Models — API error responses
 # ============================================================================

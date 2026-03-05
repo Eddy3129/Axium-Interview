@@ -19,6 +19,22 @@ export interface RecipeResponse {
   recipes: Recipe[];
 }
 
+export interface SaveRecipeRequest {
+  recipe: Recipe;
+  rating: number;
+}
+
+export interface SavedRecipe {
+  id: number;
+  recipe: Recipe;
+  rating: number;
+  createdAt: string;
+}
+
+export interface SavedRecipeListResponse {
+  items: SavedRecipe[];
+}
+
 export interface ApiError {
   error: string;
   message?: string;

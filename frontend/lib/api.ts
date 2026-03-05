@@ -1,4 +1,10 @@
-import type { ApiError, RecipeResponse } from "@/types/recipe";
+import type {
+  ApiError,
+  Recipe,
+  RecipeResponse,
+  SavedRecipe,
+  SavedRecipeListResponse,
+} from "@/types/recipe";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
@@ -37,4 +43,47 @@ export async function fetchRecipes(
   }
 
   return (await response.json()) as RecipeResponse;
+}
+
+export async function saveRecipe(
+  recipe: Recipe,
+  rating: number,
+): Promise<SavedRecipe> {
+  const response = await fetch(`${API_BASE_URL}/saved-recipes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ recipe, rating }),
+  });
+
+  if (!response.ok) {
+    let payload: ApiError | null = null;
+    try {
+      payload = (await response.json()) as ApiError;
+    } catch {
+      payload = null;
+    }
+    throw new Error(toErrorMessage(response.status, payload));
+  }
+
+  return (await response.json()) as SavedRecipe;
+}
+
+export async function fetchSavedRecipes(): Promise<SavedRecipeListResponse> {
+  const response = await fetch(`${API_BASE_URL}/saved-recipes`, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    let payload: ApiError | null = null;
+    try {
+      payload = (await response.json()) as ApiError;
+    } catch {
+      payload = null;
+    }
+    throw new Error(toErrorMessage(response.status, payload));
+  }
+
+  return (await response.json()) as SavedRecipeListResponse;
 }

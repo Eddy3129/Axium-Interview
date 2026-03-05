@@ -24,6 +24,58 @@ body {
   font-family: var(--font-sans);
 }
 
+.app-content {
+  padding-top: 72px;
+}
+
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  border-bottom: 1px solid var(--line);
+  background: #fffaf2e8;
+  backdrop-filter: blur(6px);
+}
+
+.nav-inner {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  color: var(--foreground);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--foreground);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.86rem;
+}
+
+.nav-link.active {
+  background: var(--accent-2);
+  color: #fff;
+  border-color: var(--accent-2);
+}
+
 .chat-shell {
   min-height: 100vh;
   max-width: 920px;
@@ -32,6 +84,94 @@ body {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 14px;
+}
+
+.recipes-page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 20px 14px 28px;
+}
+
+.recipes-header {
+  background: linear-gradient(140deg, #f9eee0, #f2e7d7 60%, #e8f0e4);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.recipes-header h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.recipes-note {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+
+.saved-recipes-list {
+  display: grid;
+  gap: 10px;
+}
+
+.saved-recipe-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffcf7;
+  padding: 12px;
+}
+
+.saved-recipe-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.saved-recipe-head h3 {
+  font-weight: 700;
+}
+
+.saved-time {
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.saved-meta {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  opacity: 0.78;
+}
+
+.saved-recipe-actions {
+  margin-top: 8px;
+}
+
+.saved-rating {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.saved-instructions {
+  margin-top: 10px;
+  border-top: 1px dashed var(--line);
+  padding-top: 8px;
+}
+
+.saved-instructions h4 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.saved-instructions ol {
+  margin-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
 }
 
 .chat-header {
@@ -129,6 +269,11 @@ body {
   gap: 10px;
 }
 
+.recipe-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .recipe-header h3 {
   font-weight: 700;
   font-size: 1.02rem;
@@ -148,6 +293,21 @@ body {
   transition:
     transform 0.16s ease,
     opacity 0.16s ease;
+}
+
+.save-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.save-btn:hover {
+  transform: translateY(-1px);
 }
 
 .expand-btn {
@@ -240,6 +400,83 @@ body {
 .input-hint {
   font-size: 0.8rem;
   opacity: 0.72;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: #00000066;
+  display: grid;
+  place-items: center;
+  z-index: 120;
+  padding: 16px;
+}
+
+.save-modal {
+  width: min(100%, 420px);
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.save-modal h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.save-modal p {
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.star-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.star-btn {
+  border: none;
+  background: transparent;
+  color: #c4b8a1;
+  font-size: 1.6rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.star-btn.filled {
+  color: #f0a500;
+}
+
+.modal-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.modal-btn.secondary {
+  background: #e8e0cf;
+  color: #2a241a;
+}
+
+.modal-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.modal-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .recipe-skeleton {

@@ -51,7 +51,7 @@ class Recipe(BaseModel):
 
 class RecipeResponse(BaseModel):
     """API response containing generated recipes."""
-    recipes: list[Recipe] = Field(..., min_items=2, max_items=3, description="Generated recipes (1-3 recipes)")
+    recipes: list[Recipe] = Field(..., min_length=2, max_length=3, description="Generated recipes (2-3 recipes)")
 
 
 class IngredientsRequest(BaseModel):
